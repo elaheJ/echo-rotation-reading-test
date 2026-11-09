@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Echo Rotation Reading</title>
+<style>
+  :root {
+    --bg: #111418; --panel: #1a1f25; --panel2: #222932; --line: #2f3843; --text: #e8ecf0; --muted: #9aa6b2;
+    --accent: #5aa9e6; --accent-ink: #0b1a26; --ok: #6cc38a; --warn: #e6b35a; --bad: #e66a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  button { font: inherit; color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 16px; }
+  .hidden { display: none !important; }
+  h1 { font-size: 22px; margin: 8px 0 4px; }
+  h2 { font-size: 17px; margin: 18px 0 6px; }
+  p { margin: 6px 0; }
+  .muted { color: var(--muted); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+  .intro { max-width: 760px; margin: 24px auto; }
+  .intro ul { margin: 6px 0 6px 20px; padding: 0; }
+  .intro li { margin: 3px 0; }
+  label.f { display: block; margin: 12px 0 4px; font-weight: 600; }
+  input[type=text], textarea { width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; color: var(--text); padding: 8px 10px; font: inherit; }
+  textarea { resize: vertical; min-height: 54px; }
+  .btn { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 16px; cursor: pointer; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .bar { position: sticky; top: 0; z-index: 5; background: rgba(17,20,24,.96); border-bottom: 1px solid var(--line); }
+  .bar .wrap { display: flex; gap: 14px; align-items: center; padding-top: 10px; padding-bottom: 10px; }
+  .prog { flex: 1; height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
+  .prog > div { height: 100%; background: var(--accent); width: 0; }
+  .count { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .clips { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .clip { background: #000; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .clip .cap { display: flex; justify-content: space-between; padding: 7px 12px; background: var(--panel); font-size: 14px; }
+  .clip .cap b { font-size: 16px; }
+  .clip video { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: #000; }
+  .clip .err { padding: 30px; text-align: center; color: var(--warn); }
+  .tools { margin-top: 10px; }
+  .q { margin-top: 14px; }
+  .q h3 { font-size: 16px; margin: 0 0 8px; }
+  .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .conf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+  .opt { background: var(--panel2); border: 2px solid var(--line); border-radius: 10px; padding: 12px 10px; cursor: pointer; text-align: center; font-size: 16px; }
+  .opt small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .opt:hover { border-color: #4b5a6a; }
+  .opt.sel { border-color: var(--accent); background: #1d3346; }
+  .next { margin-top: 14px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .comment { flex: 1; min-width: 240px; }
+  .note { font-size: 13px; color: var(--muted); }
+  .warnbox { border: 1px solid var(--warn); color: var(--warn); border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
+  kbd { background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; }
+  @media (max-width: 760px) {
+    .clips { grid-template-columns: 1fr; }
+    .choices, .conf { grid-template-columns: 1fr; }
+    .bar .wrap { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<script src="trials.js"></script>
+
+<!-- start -->
+<section id="start" class="wrap">
+  <div class="card intro">
+    <h1>Echo rotation reading test</h1>
+    <p class="muted">About 130 trials. Plan on 1 to 1.5 hours. You can stop and come back.</p>
+    <h2>What you will see</h2>
+    <ul>
+      <li>Each trial shows two apical recordings from the same patient, A and B.</li>
+      <li>Imagine you recorded A, then rotated the probe about its long axis and recorded B.</li>
+      <li>Say which way the probe rotated from A to B: clockwise or counterclockwise.</li>
+      <li>Use the convention you use at the bedside.</li>
+      <li>Some pairs differ a lot, some a little, and some not at all.</li>
+      <li>If you cannot see a rotation, choose <b>Can't tell</b>. That is a useful answer.</li>
+      <li>Then rate your confidence: low, medium or high.</li>
+    </ul>
+    <h2>Please</h2>
+    <ul>
+      <li>Use a laptop or desktop screen, so A and B sit side by side.</li>
+      <li>Judge from the images only. There is no feedback and no time limit.</li>
+      <li>Do not go back to earlier trials. Your first reading is what we need.</li>
+      <li id="offlinetip">Keep this folder together. Do not rename or move the clip files.</li>
+      <li>When you finish, click <b>Download answers</b> and email the file to the study team.</li>
+    </ul>
+    <label class="f" for="reader">Your initials</label>
+    <input id="reader" type="text" maxlength="12" autocomplete="off" placeholder="e.g. AB">
+    <label class="f" for="experience">Years scanning echo (optional)</label>
+    <input id="experience" type="text" maxlength="20" autocomplete="off">
+    <label class="f" for="convention">How do you define clockwise for probe rotation? (optional)</label>
+    <textarea id="convention" placeholder="e.g. viewed from the tail of the probe, marker at 3 o'clock for A4C"></textarea>
+    <div id="storewarn" class="warnbox hidden">This browser is not saving progress. Please finish in one sitting, or download your answers before closing.</div>
+    <div id="resumebox" class="warnbox hidden"></div>
+    <div class="row" style="margin-top:16px">
+      <button id="startbtn" class="btn primary" disabled>Start</button>
+      <button id="resumebtn" class="btn hidden">Resume</button>
+      <button id="restartbtn" class="btn hidden">Start over</button>
+    </div>
+    <p class="note" style="margin-top:12px">Keys: <kbd>1</kbd> clockwise, <kbd>2</kbd> counterclockwise, <kbd>3</kbd> can't tell, <kbd>L</kbd> <kbd>M</kbd> <kbd>H</kbd> confidence, <kbd>Enter</kbd> next, <kbd>R</kbd> replay both, <kbd>S</kbd> slow motion.</p>
+    <p class="note" style="margin-top:14px; border-top:1px solid var(--line); padding-top:10px">Clips are derived from the EchoXFlow dataset (Ahus-AIM,
+      <a style="color:var(--accent)" href="https://huggingface.co/datasets/Ahus-AIM/EchoXFlow">huggingface.co/datasets/Ahus-AIM/EchoXFlow</a>), used under
+      <a style="color:var(--accent)" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. Changes: selected recordings were scan-converted to video.
+      Non-commercial research use only.</p>
+  </div>
+</section>
+
+<!-- trials -->
+<section id="test" class="hidden">
+  <div class="bar"><div class="wrap">
+    <span class="count" id="count">Trial 1 of 130</span>
+    <div class="prog"><div id="progfill"></div></div>
+    <button class="btn" id="dl1">Download answers</button>
+  </div></div>
+  <div class="wrap">
+    <div class="clips">
+      <div class="clip"><div class="cap"><b>A</b><span>first recording</span><span id="da" class="muted"></span></div>
+        <video id="va" muted loop playsinline autoplay preload="auto"></video><div id="ea" class="err hidden">This clip did not load.</div></div>
+      <div class="clip"><div class="cap"><b>B</b><span>second recording</span><span id="db" class="muted"></span></div>
+        <video id="vb" muted loop playsinline autoplay preload="auto"></video><div id="eb" class="err hidden">This clip did not load.</div></div>
+    </div>
+    <div class="row tools">
+      <button class="btn" id="replay">Replay both</button>
+      <button class="btn" id="slow">Slow motion: off</button>
+      <button class="btn" id="pause">Pause</button>
+    </div>
+    <div class="q">
+      <h3>From A to B, which way did the probe rotate?</h3>
+      <div class="choices" id="choices">
+        <div class="opt" data-a="cw" tabindex="0">Clockwise<small>key 1</small></div>
+        <div class="opt" data-a="ccw" tabindex="0">Counterclockwise<small>key 2</small></div>
+        <div class="opt" data-a="cant" tabindex="0">Can't tell<small>key 3</small></div>
+      </div>
+      <h3 style="margin-top:14px">How confident are you?</h3>
+      <div class="conf" id="conf">
+        <div class="opt" data-c="low" tabindex="0">Low confidence<small>key L</small></div>
+        <div class="opt" data-c="medium" tabindex="0">Medium<small>key M</small></div>
+        <div class="opt" data-c="high" tabindex="0">High confidence<small>key H</small></div>
+      </div>
+    </div>
+    <div class="next">
+      <input class="comment" id="comment" type="text" maxlength="200" placeholder="Comment (optional), e.g. different view, poor image">
+      <button class="btn primary" id="nextbtn" disabled>Next trial</button>
+    </div>
+    <p class="note" id="savednote"></p>
+  </div>
+</section>
+
+<!-- break -->
+<section id="pausebox" class="wrap hidden">
+  <div class="card intro">
+    <h1>Break</h1>
+    <p id="breaktext"></p>
+    <p class="muted">Your answers are saved in this browser. You can also download them now.</p>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="cont">Continue</button><button class="btn" id="dl2">Download answers</button></div>
+  </div>
+</section>
+
+<!-- end -->
+<section id="done" class="wrap hidden">
+  <div class="card intro">
+    <h1>Finished. Thank you.</h1>
+    <p>Please download your answers and email the file to the study team.</p>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="dl3">Download answers (CSV)</button><button class="btn" id="dl4">Download answers (JSON)</button></div>
+    <p class="note" style="margin-top:12px" id="donenote"></p>
+  </div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+  var T = window.TEST;
+  if (!T || !T.trials) { document.body.innerHTML = '<div class="wrap"><div class="card intro"><h1>Files missing</h1><p>trials.js was not found next to this page. Keep the folder together and open index.html from inside it.</p></div></div>'; return; }
+  var KEY = "rotation-reading:" + T.test_id, BREAK_EVERY = 45;
+  var $ = function (id) { return document.getElementById(id); };
+  var store = (function () { try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); return true; } catch (e) { return false; } })();
+  function save() { if (!store) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function load() { if (!store) return null; try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; } }
+
+  if (location.protocol !== "file:") $("offlinetip").classList.add("hidden");
+  var S = null, cur = null;
+  var prior = load();
+  if (!store) $("storewarn").classList.remove("hidden");
+  if (prior && prior.answers && prior.answers.length) {
+    var done = prior.answers.length >= T.n;
+    $("resumebox").textContent = "Saved progress found for " + prior.reader + ": " + prior.answers.length + " of " + T.n + " trials answered" + (done ? " (finished)." : ".");
+    $("resumebox").classList.remove("hidden"); $("resumebtn").classList.remove("hidden"); $("restartbtn").classList.remove("hidden");
+    $("resumebtn").textContent = done ? "Open download page" : "Resume";
+    $("reader").value = prior.reader || ""; $("experience").value = prior.experience || ""; $("convention").value = prior.convention || "";
+  }
+  $("reader").addEventListener("input", function () { $("startbtn").disabled = !this.value.trim(); });
+  $("startbtn").addEventListener("click", function () {
+    if (prior && prior.answers && prior.answers.length && !confirm("This replaces the saved answers in this browser. Download them first if you need them. Continue?")) return;
+    S = { test_id: T.test_id, reader: $("reader").value.trim(), experience: $("experience").value.trim(), convention: $("convention").value.trim(),
+          started: new Date().toISOString(), user_agent: navigator.userAgent, answers: [] };
+    save(); begin();
+  });
+  $("resumebtn").addEventListener("click", function () { S = prior; S.convention = $("convention").value.trim() || S.convention; save(); begin(); });
+  $("restartbtn").addEventListener("click", function () { $("startbtn").disabled = !$("reader").value.trim(); $("startbtn").click(); });
+
+  function show(id) { ["start", "test", "pausebox", "done"].forEach(function (s) { $(s).classList.toggle("hidden", s !== id); }); window.scrollTo(0, 0); }
+  function begin() { if (S.answers.length >= T.n) return finish(); show("test"); trial(); }
+
+  var va = $("va"), vb = $("vb"), slow = false;
+  function setVideo(v, src, errEl) {
+    errEl.classList.add("hidden"); v.classList.remove("hidden");
+    v.onerror = function () { v.classList.add("hidden"); errEl.classList.remove("hidden"); if (cur) cur.video_error = true; };
+    v.src = src; v.playbackRate = slow ? 0.5 : 1; v.load(); var p = v.play(); if (p && p.catch) p.catch(function () {});
+  }
+  function trial() {
+    var i = S.answers.length, t = T.trials[i];
+    cur = { t: t.t, answer: null, confidence: null, shown_at: performance.now(), replays: 0, slow_used: slow, video_error: false };
+    $("count").textContent = "Trial " + (i + 1) + " of " + T.n;
+    $("progfill").style.width = (100 * i / T.n) + "%";
+    $("da").textContent = "Depth " + t.da + " cm"; $("db").textContent = "Depth " + t.db + " cm";
+    setVideo(va, t.a, $("ea")); setVideo(vb, t.b, $("eb"));
+    document.querySelectorAll(".opt").forEach(function (o) { o.classList.remove("sel"); });
+    $("comment").value = ""; $("nextbtn").disabled = true; $("pause").textContent = "Pause";
+    $("savednote").textContent = store ? "Answers are saved in this browser after every trial." : "";
+  }
+  function pick(kind, val) {
+    if (!cur) return;
+    cur[kind] = val;
+    document.querySelectorAll(kind === "answer" ? "#choices .opt" : "#conf .opt").forEach(function (o) {
+      o.classList.toggle("sel", (kind === "answer" ? o.dataset.a : o.dataset.c) === val); });
+    $("nextbtn").disabled = !(cur.answer && cur.confidence);
+  }
+  document.querySelectorAll("#choices .opt").forEach(function (o) { o.addEventListener("click", function () { pick("answer", o.dataset.a); }); });
+  document.querySelectorAll("#conf .opt").forEach(function (o) { o.addEventListener("click", function () { pick("confidence", o.dataset.c); }); });
+  function replay() { [va, vb].forEach(function (v) { try { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }); if (cur) cur.replays++; $("pause").textContent = "Pause"; }
+  $("replay").addEventListener("click", replay);
+  $("slow").addEventListener("click", function () { slow = !slow; va.playbackRate = vb.playbackRate = slow ? 0.5 : 1; this.textContent = "Slow motion: " + (slow ? "on" : "off"); if (cur && slow) cur.slow_used = true; });
+  $("pause").addEventListener("click", function () {
+    if (va.paused) { va.play(); vb.play(); this.textContent = "Pause"; } else { va.pause(); vb.pause(); this.textContent = "Play"; } });
+  function next() {
+    if (!cur || !cur.answer || !cur.confidence) return;
+    S.answers.push({ t: cur.t, answer: cur.answer, confidence: cur.confidence, comment: $("comment").value.trim(),
+                     rt_ms: Math.round(performance.now() - cur.shown_at), replays: cur.replays, slow_used: cur.slow_used,
+                     video_error: cur.video_error, answered_at: new Date().toISOString() });
+    save(); cur = null;
+    var n = S.answers.length;
+    if (n >= T.n) return finish();
+    if (n % BREAK_EVERY === 0) { va.pause(); vb.pause(); $("breaktext").textContent = n + " of " + T.n + " trials done."; show("pausebox"); return; }
+    trial();
+  }
+  $("nextbtn").addEventListener("click", next);
+  $("cont").addEventListener("click", function () { show("test"); trial(); });
+  function finish() { va.pause(); vb.pause(); S.finished = S.finished || new Date().toISOString(); save(); $("donenote").textContent = S.answers.length + " answers from " + S.reader + "."; show("done"); }
+
+  document.addEventListener("keydown", function (e) {
+    if ($("test").classList.contains("hidden") || e.target === $("comment") || e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key.toLowerCase();
+    if (k === "1") pick("answer", "cw"); else if (k === "2") pick("answer", "ccw"); else if (k === "3") pick("answer", "cant");
+    else if (k === "l") pick("confidence", "low"); else if (k === "m") pick("confidence", "medium"); else if (k === "h") pick("confidence", "high");
+    else if (k === "r") replay(); else if (k === "s") $("slow").click(); else if (k === "enter") next(); else return;
+    e.preventDefault();
+  });
+
+  function stamp() { return new Date().toISOString().slice(0, 10); }
+  function fname(ext) { return "RotationReading_" + (S.reader || "reader").replace(/[^A-Za-z0-9]/g, "") + "_" + stamp() + "." + ext; }
+  function download(text, name, type) {
+    var b = new Blob([text], { type: type }), a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function csv() {
+    var q = function (v) { v = v === undefined || v === null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var head = ["test_id", "reader", "experience", "convention", "trial", "answer", "confidence", "comment", "rt_ms", "replays", "slow_used", "video_error", "answered_at"];
+    var rows = S.answers.map(function (a) { return [S.test_id, S.reader, S.experience, S.convention, a.t, a.answer, a.confidence, a.comment, a.rt_ms, a.replays, a.slow_used, a.video_error, a.answered_at].map(q).join(","); });
+    return head.join(",") + "\n" + rows.join("\n") + "\n";
+  }
+  function dlcsv() { if (S) download(csv(), fname("csv"), "text/csv"); }
+  ["dl1", "dl2", "dl3"].forEach(function (id) { $(id).addEventListener("click", dlcsv); });
+  $("dl4").addEventListener("click", function () { if (S) download(JSON.stringify(S, null, 1), fname("json"), "application/json"); });
+})();
+</script>
+</body>
+</html>
