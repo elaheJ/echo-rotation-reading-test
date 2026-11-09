@@ -1,13 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="color-scheme: light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Echo Rotation Reading</title>
 <style>
   :root {
-    --bg: #111418; --panel: #1a1f25; --panel2: #222932; --line: #2f3843; --text: #e8ecf0; --muted: #9aa6b2;
-    --accent: #5aa9e6; --accent-ink: #0b1a26; --ok: #6cc38a; --warn: #e6b35a; --bad: #e66a5a;
+    --bg: #f4f6f8; --panel: #ffffff; --panel2: #eef1f4; --line: #cfd6dd; --text: #1b2430; --muted: #5b6672;
+    --accent: #1f6fb2; --accent-ink: #ffffff; --ok: #2e7d4f; --warn: #8a5a00; --bad: #b3261e;
+    --sel: #dcebf8; --hover: #8a98a6; --barbg: rgba(244,246,248,.96); --warnbg: #fff6e0;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
@@ -30,7 +31,7 @@
   .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .bar { position: sticky; top: 0; z-index: 5; background: rgba(17,20,24,.96); border-bottom: 1px solid var(--line); }
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--barbg); border-bottom: 1px solid var(--line); }
   .bar .wrap { display: flex; gap: 14px; align-items: center; padding-top: 10px; padding-bottom: 10px; }
   .prog { flex: 1; height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
   .prog > div { height: 100%; background: var(--accent); width: 0; }
@@ -40,7 +41,7 @@
   .clip .cap { display: flex; justify-content: space-between; padding: 7px 12px; background: var(--panel); font-size: 14px; }
   .clip .cap b { font-size: 16px; }
   .clip video { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: #000; }
-  .clip .err { padding: 30px; text-align: center; color: var(--warn); }
+  .clip .err { padding: 30px; text-align: center; color: #e6b35a; }
   .tools { margin-top: 10px; }
   .q { margin-top: 14px; }
   .q h3 { font-size: 16px; margin: 0 0 8px; }
@@ -48,12 +49,12 @@
   .conf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
   .opt { background: var(--panel2); border: 2px solid var(--line); border-radius: 10px; padding: 12px 10px; cursor: pointer; text-align: center; font-size: 16px; }
   .opt small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .opt:hover { border-color: #4b5a6a; }
-  .opt.sel { border-color: var(--accent); background: #1d3346; }
+  .opt:hover { border-color: var(--hover); }
+  .opt.sel { border-color: var(--accent); background: var(--sel); }
   .next { margin-top: 14px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
   .comment { flex: 1; min-width: 240px; }
   .note { font-size: 13px; color: var(--muted); }
-  .warnbox { border: 1px solid var(--warn); color: var(--warn); border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
+  .warnbox { border: 1px solid var(--warn); color: var(--warn); background: var(--warnbg); border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
   kbd { background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; }
   @media (max-width: 760px) {
     .clips { grid-template-columns: 1fr; }
