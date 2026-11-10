@@ -7,7 +7,8 @@ the probe rotated between them, or that they can't tell, and gives a confidence 
 
 - Use a laptop or desktop browser (Chrome, Edge or Safari). About 130 trials, 1 to 1.5 hours.
 - Answers are saved in your browser after every trial, so you can stop and resume on the same computer and browser.
-- At the end, click **Download answers** and email the CSV file to the study team. Nothing is sent automatically.
+- Enter the access code from the study team's email. Answers are sent to the study team automatically at each break
+  and at the end. If sending fails, click **Download answers** and email the CSV file to the study team.
 - To work offline instead, download this repository as a ZIP and open `index.html`.
 
 ## Data and licence

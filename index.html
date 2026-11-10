@@ -55,6 +55,8 @@
   .next { margin-top: 14px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
   .comment { flex: 1; min-width: 240px; }
   .note { font-size: 13px; color: var(--muted); }
+  .sent { color: var(--ok); font-weight: 600; }
+  .sendfail { border: 1px solid var(--bad); color: var(--bad); background: #fdecea; border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
   .warnbox { border: 1px solid var(--warn); color: var(--warn); background: var(--warnbg); border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
   kbd { background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; }
   @media (max-width: 760px) {
@@ -88,10 +90,13 @@
       <li>Judge from the images only. There is no feedback and no time limit.</li>
       <li>Do not go back to earlier trials. Your first reading is what we need.</li>
       <li id="offlinetip">Keep this folder together. Do not rename or move the clip files.</li>
-      <li>When you finish, click <b>Download answers</b> and email the file to the study team.</li>
+      <li>Your answers are sent to the study team at each break and at the end. If sending fails, the page asks you to download the file and email it.</li>
     </ul>
     <label class="f" for="reader">Your initials</label>
     <input id="reader" type="text" maxlength="12" autocomplete="off" placeholder="e.g. AB">
+    <label class="f" for="code">Access code (from the study team's email)</label>
+    <input id="code" type="text" maxlength="40" autocomplete="off" spellcheck="false">
+    <div id="codemsg" class="warnbox hidden"></div>
     <label class="f" for="experience">Years scanning echo (optional)</label>
     <input id="experience" type="text" maxlength="20" autocomplete="off">
     <label class="f" for="convention">How do you define clockwise for probe rotation? (optional)</label>
@@ -158,6 +163,7 @@
     <h1>Break</h1>
     <p id="breaktext"></p>
     <p class="muted">Your answers are saved in this browser. You can also download them now.</p>
+    <div id="breaksend" class="note"></div>
     <div class="row" style="margin-top:14px"><button class="btn primary" id="cont">Continue</button><button class="btn" id="dl2">Download answers</button></div>
   </div>
 </section>
@@ -166,8 +172,10 @@
 <section id="done" class="wrap hidden">
   <div class="card intro">
     <h1>Finished. Thank you.</h1>
-    <p>Please download your answers and email the file to the study team.</p>
-    <div class="row" style="margin-top:14px"><button class="btn primary" id="dl3">Download answers (CSV)</button><button class="btn" id="dl4">Download answers (JSON)</button></div>
+    <div id="donesend" class="note"></div>
+    <div class="row" style="margin-top:10px"><button class="btn hidden" id="retrysend">Try sending again</button></div>
+    <p class="muted" style="margin-top:12px">You can also keep a copy of your answers.</p>
+    <div class="row" style="margin-top:8px"><button class="btn primary" id="dl3">Download answers (CSV)</button><button class="btn" id="dl4">Download answers (JSON)</button></div>
     <p class="note" style="margin-top:12px" id="donenote"></p>
   </div>
 </section>
@@ -178,10 +186,16 @@
   var T = window.TEST;
   if (!T || !T.trials) { document.body.innerHTML = '<div class="wrap"><div class="card intro"><h1>Files missing</h1><p>trials.js was not found next to this page. Keep the folder together and open index.html from inside it.</p></div></div>'; return; }
   var KEY = "rotation-reading:" + T.test_id, BREAK_EVERY = 45;
+  // Google Apps Script relay that saves each submission to the private responses repo (empty = sending off)
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbyTxgF-PmHGjTlpCNJnzDdgVF-eLVQM5V32nZbMVOZIkJO-qHtQ2YNc0mPYY-Q0Myjw/exec";
   var $ = function (id) { return document.getElementById(id); };
   var store = (function () { try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); return true; } catch (e) { return false; } })();
   function save() { if (!store) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   function load() { if (!store) return null; try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; } }
+  function saveCode(c) { if (!store) return; try { localStorage.setItem(KEY + ":code", c); } catch (e) {} }
+  function loadCode() { if (!store) return ""; try { return localStorage.getItem(KEY + ":code") || ""; } catch (e) { return ""; } }
+  var memCode = "";
+  function getCode() { return $("code").value.trim() || memCode || loadCode(); }
 
   if (location.protocol !== "file:") $("offlinetip").classList.add("hidden");
   var S = null, cur = null;
@@ -194,14 +208,38 @@
     $("resumebtn").textContent = done ? "Open download page" : "Resume";
     $("reader").value = prior.reader || ""; $("experience").value = prior.experience || ""; $("convention").value = prior.convention || "";
   }
-  $("reader").addEventListener("input", function () { $("startbtn").disabled = !this.value.trim(); });
+  $("code").value = loadCode();
+  function canStart() { return !!$("reader").value.trim() && (!ENDPOINT || !!$("code").value.trim()); }
+  $("reader").addEventListener("input", function () { $("startbtn").disabled = !canStart(); });
+  $("code").addEventListener("input", function () { $("startbtn").disabled = !canStart(); $("codemsg").classList.add("hidden"); });
+  if (!ENDPOINT) $("code").parentNode.querySelector('label[for=code]').classList.add("hidden"), $("code").classList.add("hidden");
+  // check the access code with the relay before starting; a network failure lets the reader continue with downloads only
+  function checkCode(then) {
+    if (!ENDPOINT) return then();
+    var btns = [$("startbtn"), $("resumebtn"), $("restartbtn")]; btns.forEach(function (b) { b.disabled = true; });
+    var done = function () { btns.forEach(function (b) { b.disabled = false; }); $("startbtn").disabled = !canStart(); };
+    post({ code: getCode(), stage: "check", test_id: T.test_id }).then(function (j) {
+      done();
+      if (j && j.ok) { memCode = getCode(); saveCode(memCode); return then(); }
+      if (j && j.error === "code") { var m = $("codemsg"); m.textContent = "That access code was not accepted. Please check the code in the study team's email."; m.classList.remove("hidden"); return; }
+      if (confirm("The study server did not answer. You can still take the test. At the end, download your answers and email them. Continue?")) then();
+    }, function () {
+      done();
+      if (confirm("The study server could not be reached. You can still take the test. At the end, download your answers and email them. Continue?")) then();
+    });
+  }
   $("startbtn").addEventListener("click", function () {
     if (prior && prior.answers && prior.answers.length && !confirm("This replaces the saved answers in this browser. Download them first if you need them. Continue?")) return;
-    S = { test_id: T.test_id, reader: $("reader").value.trim(), experience: $("experience").value.trim(), convention: $("convention").value.trim(),
-          started: new Date().toISOString(), user_agent: navigator.userAgent, answers: [] };
-    save(); begin();
+    checkCode(function () {
+      S = { test_id: T.test_id, reader: $("reader").value.trim(), experience: $("experience").value.trim(), convention: $("convention").value.trim(),
+            started: new Date().toISOString(), user_agent: navigator.userAgent, session: sessionId(), sent: {}, answers: [] };
+      save(); begin();
+    });
   });
-  $("resumebtn").addEventListener("click", function () { S = prior; S.convention = $("convention").value.trim() || S.convention; save(); begin(); });
+  $("resumebtn").addEventListener("click", function () {
+    checkCode(function () { S = prior; S.convention = $("convention").value.trim() || S.convention; S.session = S.session || sessionId(); S.sent = S.sent || {}; save(); begin(); });
+  });
+  function sessionId() { var a = "abcdefghjkmnpqrstuvwxyz23456789", r = ""; for (var i = 0; i < 8; i++) r += a[Math.floor(Math.random() * a.length)]; return r; }
   $("restartbtn").addEventListener("click", function () { $("startbtn").disabled = !$("reader").value.trim(); $("startbtn").click(); });
 
   function show(id) { ["start", "test", "pausebox", "done"].forEach(function (s) { $(s).classList.toggle("hidden", s !== id); }); window.scrollTo(0, 0); }
@@ -246,12 +284,45 @@
     save(); cur = null;
     var n = S.answers.length;
     if (n >= T.n) return finish();
-    if (n % BREAK_EVERY === 0) { va.pause(); vb.pause(); $("breaktext").textContent = n + " of " + T.n + " trials done."; show("pausebox"); return; }
+    if (n % BREAK_EVERY === 0) { va.pause(); vb.pause(); $("breaktext").textContent = n + " of " + T.n + " trials done."; show("pausebox"); submit("break", $("breaksend")); return; }
     trial();
   }
   $("nextbtn").addEventListener("click", next);
   $("cont").addEventListener("click", function () { show("test"); trial(); });
-  function finish() { va.pause(); vb.pause(); S.finished = S.finished || new Date().toISOString(); save(); $("donenote").textContent = S.answers.length + " answers from " + S.reader + "."; show("done"); }
+  function finish() {
+    va.pause(); vb.pause(); S.finished = S.finished || new Date().toISOString(); save();
+    $("donenote").textContent = S.answers.length + " answers from " + S.reader + "."; show("done");
+    var k = "final_" + S.answers.length;
+    if (S.sent && S.sent[k]) sentMsg($("donesend"), "final"); else submit("final", $("donesend"));
+  }
+  $("retrysend").addEventListener("click", function () { submit("final", $("donesend")); });
+
+  // ---- sending to the study team (Google Apps Script relay -> private GitHub repo)
+  function post(obj) {
+    return fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(obj), redirect: "follow" })
+      .then(function (r) { return r.json(); });
+  }
+  function sentMsg(el, stage) {
+    el.className = "note sent";
+    el.textContent = stage === "final" ? "All " + S.answers.length + " answers were sent to the study team. You can close this page."
+                                       : "Your answers so far (" + S.answers.length + " of " + T.n + ") were sent to the study team.";
+    if (stage === "final") $("retrysend").classList.add("hidden");
+  }
+  function submit(stage, el) {
+    if (!ENDPOINT) { el.className = "note"; el.textContent = stage === "final" ? "Please download your answers and email the file to the study team." : ""; return; }
+    var snap = S, k = stage + "_" + snap.answers.length;
+    el.className = "note"; el.textContent = "Sending your answers to the study team...";
+    if (stage === "final") $("retrysend").classList.add("hidden");
+    post({ code: getCode(), stage: stage, test_id: T.test_id, session: snap.session, csv: csv(), state: snap }).then(function (j) {
+      if (!j || !j.ok) throw new Error(j && j.error || "no reply");
+      snap.sent = snap.sent || {}; snap.sent[k] = j.path; save(); sentMsg(el, stage);
+    }).catch(function (e) {
+      el.className = "sendfail";
+      el.textContent = (stage === "final" ? "Your answers could not be sent (" : "Your answers so far could not be sent (") + (e && e.message || "network") +
+        "). They are still saved in this browser. " + (stage === "final" ? "Please try again, or click Download answers and email the file to the study team." : "The page will try again at the next break and at the end.");
+      if (stage === "final") $("retrysend").classList.remove("hidden");
+    });
+  }
 
   document.addEventListener("keydown", function (e) {
     if ($("test").classList.contains("hidden") || e.target === $("comment") || e.metaKey || e.ctrlKey || e.altKey) return;
