@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Echo Rotation Reading</title>
+<title>Echo Rotation Reading: Expert Pilot</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 L29 24 A15 15 0 0 1 3 24 Z' fill='%231f6fb2'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -41,13 +41,21 @@
   .clip { background: #000; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .clip .cap { display: flex; justify-content: space-between; padding: 7px 12px; background: var(--panel); font-size: 14px; }
   .clip .cap b { font-size: 16px; }
-  .clip video { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: #000; }
+  .clip video { display: block; width: 100%; height: auto; max-height: 50vh; object-fit: contain; background: #000; }
   .clip .err { padding: 30px; text-align: center; color: #e6b35a; }
   .tools { margin-top: 10px; }
   .q { margin-top: 14px; }
   .q h3 { font-size: 16px; margin: 0 0 8px; }
   .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .conf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+  .five { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .five .opt { font-size: 14px; padding: 9px 4px; }
+  .qrow { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px; }
+  .qrow .conf { margin-top: 0; }
+  .qrow .opt { padding: 9px 6px; }
+  .q h3.sub { margin-top: 12px; }
+  #reasons .opt small { display: inline; margin-left: 4px; }
+  .q h3 span.hint { font-weight: 400; color: var(--muted); font-size: 13px; }
   .opt { background: var(--panel2); border: 2px solid var(--line); border-radius: 10px; padding: 12px 10px; cursor: pointer; text-align: center; font-size: 16px; }
   .opt small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
   .opt:hover { border-color: var(--hover); }
@@ -59,9 +67,12 @@
   .sendfail { border: 1px solid var(--bad); color: var(--bad); background: #fdecea; border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
   .warnbox { border: 1px solid var(--warn); color: var(--warn); background: var(--warnbg); border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
   kbd { background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; }
+  @media (max-width: 1000px) { .qrow { grid-template-columns: 1fr; gap: 0; } .qrow .qcol + .qcol h3 { margin-top: 14px; } }
   @media (max-width: 760px) {
     .clips { grid-template-columns: 1fr; }
-    .choices, .conf { grid-template-columns: 1fr; }
+    .choices, .conf, .five { grid-template-columns: 1fr; }
+    .qrow { grid-template-columns: 1fr; gap: 0; }
+    .qrow .qcol + .qcol h3 { margin-top: 14px; }
     .bar .wrap { flex-wrap: wrap; }
   }
 </style>
@@ -72,8 +83,8 @@
 <!-- start -->
 <section id="start" class="wrap">
   <div class="card intro">
-    <h1>Echo rotation reading test</h1>
-    <p class="muted">About 130 trials. Plan on 1 to 1.5 hours. You can stop and come back.</p>
+    <h1>Echo rotation reading: expert pilot</h1>
+    <p class="muted"><span id="ntrials">34</span> trials. Plan on 30 to 40 minutes. You can stop and come back.</p>
     <h2>What you will see</h2>
     <ul>
       <li>Each trial shows two apical recordings from the same patient, A and B.</li>
@@ -83,6 +94,8 @@
       <li>Some pairs differ a lot, some a little, and some not at all.</li>
       <li>If you cannot see a rotation, choose <b>Can't tell</b>. That is a useful answer.</li>
       <li>Then rate your confidence: low, medium or high.</li>
+      <li>Say whether both recordings are four-chamber views.</li>
+      <li>Say which recording is more suitable for assessing LV function, and why.</li>
     </ul>
     <h2>Please</h2>
     <ul>
@@ -90,15 +103,15 @@
       <li>Judge from the images only. There is no feedback and no time limit.</li>
       <li>Do not go back to earlier trials. Your first reading is what we need.</li>
       <li id="offlinetip">Keep this folder together. Do not rename or move the clip files.</li>
-      <li>Your answers are sent to the study team at each break and at the end. If sending fails, the page asks you to download the file and email it.</li>
+      <li>Your answers are sent to the study team at the break and at the end. If sending fails, the page asks you to download the file and email it.</li>
     </ul>
     <label class="f" for="reader">Your initials</label>
     <input id="reader" type="text" maxlength="12" autocomplete="off" placeholder="e.g. AB">
     <label class="f" for="code">Access code (from the study team's email)</label>
     <input id="code" type="text" maxlength="40" autocomplete="off" spellcheck="false">
     <div id="codemsg" class="warnbox hidden"></div>
-    <label class="f" for="experience">Years scanning echo (optional)</label>
-    <input id="experience" type="text" maxlength="20" autocomplete="off">
+    <label class="f" for="experience">Role and years scanning echo (optional)</label>
+    <input id="experience" type="text" maxlength="40" autocomplete="off" placeholder="e.g. cardiac sonographer, 12 years">
     <label class="f" for="convention">How do you define clockwise for probe rotation? (optional)</label>
     <textarea id="convention" placeholder="e.g. viewed from the tail of the probe, marker at 3 o'clock for A4C"></textarea>
     <div id="storewarn" class="warnbox hidden">This browser is not saving progress. Please finish in one sitting, or download your answers before closing.</div>
@@ -108,7 +121,7 @@
       <button id="resumebtn" class="btn hidden">Resume</button>
       <button id="restartbtn" class="btn hidden">Start over</button>
     </div>
-    <p class="note" style="margin-top:12px">Keys: <kbd>1</kbd> clockwise, <kbd>2</kbd> counterclockwise, <kbd>3</kbd> can't tell, <kbd>L</kbd> <kbd>M</kbd> <kbd>H</kbd> confidence, <kbd>Enter</kbd> next, <kbd>R</kbd> replay both, <kbd>S</kbd> slow motion.</p>
+    <p class="note" style="margin-top:12px">Keys: <kbd>1</kbd> clockwise, <kbd>2</kbd> counterclockwise, <kbd>3</kbd> can't tell, <kbd>L</kbd> <kbd>M</kbd> <kbd>H</kbd> confidence, <kbd>Enter</kbd> next, <kbd>R</kbd> replay both, <kbd>S</kbd> slow motion. The other questions use the mouse.</p>
     <p class="note" style="margin-top:14px; border-top:1px solid var(--line); padding-top:10px">Clips are derived from the EchoXFlow dataset (Ahus-AIM,
       <a style="color:var(--accent)" href="https://huggingface.co/datasets/Ahus-AIM/EchoXFlow">huggingface.co/datasets/Ahus-AIM/EchoXFlow</a>), used under
       <a style="color:var(--accent)" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. Changes: selected recordings were scan-converted to video.
@@ -119,7 +132,7 @@
 <!-- trials -->
 <section id="test" class="hidden">
   <div class="bar"><div class="wrap">
-    <span class="count" id="count">Trial 1 of 130</span>
+    <span class="count" id="count">Trial 1 of 34</span>
     <div class="prog"><div id="progfill"></div></div>
     <button class="btn" id="dl1">Download answers</button>
   </div></div>
@@ -136,21 +149,51 @@
       <button class="btn" id="pause">Pause</button>
     </div>
     <div class="q">
+      <div class="qrow"><div class="qcol">
       <h3>From A to B, which way did the probe rotate?</h3>
       <div class="choices" id="choices">
         <div class="opt" data-a="cw" tabindex="0">Clockwise<small>key 1</small></div>
         <div class="opt" data-a="ccw" tabindex="0">Counterclockwise<small>key 2</small></div>
         <div class="opt" data-a="cant" tabindex="0">Can't tell<small>key 3</small></div>
       </div>
-      <h3 style="margin-top:14px">How confident are you?</h3>
+      </div><div class="qcol">
+      <h3>How confident are you?</h3>
       <div class="conf" id="conf">
         <div class="opt" data-c="low" tabindex="0">Low confidence<small>key L</small></div>
         <div class="opt" data-c="medium" tabindex="0">Medium<small>key M</small></div>
         <div class="opt" data-c="high" tabindex="0">High confidence<small>key H</small></div>
       </div>
+      </div></div>
+      <div class="qrow"><div class="qcol">
+      <h3>Are both recordings four-chamber views?</h3>
+      <div class="five" id="view">
+        <div class="opt" data-v="both" tabindex="0">Both</div>
+        <div class="opt" data-v="only_a" tabindex="0">Only A</div>
+        <div class="opt" data-v="only_b" tabindex="0">Only B</div>
+        <div class="opt" data-v="neither" tabindex="0">Neither</div>
+        <div class="opt" data-v="unsure" tabindex="0">Unsure</div>
+      </div>
+      </div><div class="qcol">
+      <h3>For assessing LV function, which recording is more suitable?</h3>
+      <div class="five" id="suit">
+        <div class="opt" data-s="a" tabindex="0">A</div>
+        <div class="opt" data-s="b" tabindex="0">B</div>
+        <div class="opt" data-s="both" tabindex="0">Both equally</div>
+        <div class="opt" data-s="neither" tabindex="0">Neither</div>
+        <div class="opt" data-s="uncertain" tabindex="0">Uncertain</div>
+      </div>
+      </div></div>
+      <h3 class="sub">Why? <span class="hint" id="whyhint">Select any that apply.</span></h3>
+      <div class="five" id="reasons">
+        <div class="opt" data-r="foreshortened" tabindex="0">Foreshortened LV</div>
+        <div class="opt" data-r="border" tabindex="0">Poor endocardial border</div>
+        <div class="opt" data-r="plane" tabindex="0">Off-axis or wrong plane</div>
+        <div class="opt" data-r="cutoff" tabindex="0">LV cut off by depth or sector</div>
+        <div class="opt" data-r="other" tabindex="0">Other<small>(say in the comment)</small></div>
+      </div>
     </div>
     <div class="next">
-      <input class="comment" id="comment" type="text" maxlength="200" placeholder="Comment (optional), e.g. different view, poor image">
+      <input class="comment" id="comment" type="text" maxlength="300" placeholder="Comment (optional), e.g. what differs between A and B">
       <button class="btn primary" id="nextbtn" disabled>Next trial</button>
     </div>
     <p class="note" id="savednote"></p>
@@ -185,7 +228,11 @@
   "use strict";
   var T = window.TEST;
   if (!T || !T.trials) { document.body.innerHTML = '<div class="wrap"><div class="card intro"><h1>Files missing</h1><p>trials.js was not found next to this page. Keep the folder together and open index.html from inside it.</p></div></div>'; return; }
-  var KEY = "rotation-reading:" + T.test_id, BREAK_EVERY = 45;
+  var KEY = "rotation-reading:" + T.test_id, BREAK_EVERY = Math.ceil(T.n / 2), BUILD = "pilot_1";
+  // The deployed relay accepts one test id only. The pilot sends that id to the relay and keeps its own id
+  // (T.test_id) in the saved state and in every CSV row. Pilot sessions start with "pilot" in the file name.
+  var RELAY_TEST_ID = "echo-rotation-reading-20261108";
+  if (document.getElementById("ntrials")) document.getElementById("ntrials").textContent = T.n;
   // Google Apps Script relay that saves each submission to the private responses repo (empty = sending off)
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbyTxgF-PmHGjTlpCNJnzDdgVF-eLVQM5V32nZbMVOZIkJO-qHtQ2YNc0mPYY-Q0Myjw/exec";
   var $ = function (id) { return document.getElementById(id); };
@@ -218,7 +265,7 @@
     if (!ENDPOINT) return then();
     var btns = [$("startbtn"), $("resumebtn"), $("restartbtn")]; btns.forEach(function (b) { b.disabled = true; });
     var done = function () { btns.forEach(function (b) { b.disabled = false; }); $("startbtn").disabled = !canStart(); };
-    post({ code: getCode(), stage: "check", test_id: T.test_id }).then(function (j) {
+    post({ code: getCode(), stage: "check", test_id: RELAY_TEST_ID }).then(function (j) {
       done();
       if (j && j.ok) { memCode = getCode(); saveCode(memCode); return then(); }
       if (j && j.error === "code") { var m = $("codemsg"); m.textContent = "That access code was not accepted. Please check the code in the study team's email."; m.classList.remove("hidden"); return; }
@@ -231,7 +278,7 @@
   $("startbtn").addEventListener("click", function () {
     if (prior && prior.answers && prior.answers.length && !confirm("This replaces the saved answers in this browser. Download them first if you need them. Continue?")) return;
     checkCode(function () {
-      S = { test_id: T.test_id, reader: $("reader").value.trim(), experience: $("experience").value.trim(), convention: $("convention").value.trim(),
+      S = { test_id: T.test_id, build: BUILD, reader: $("reader").value.trim(), experience: $("experience").value.trim(), convention: $("convention").value.trim(),
             started: new Date().toISOString(), user_agent: navigator.userAgent, session: sessionId(), sent: {}, answers: [] };
       save(); begin();
     });
@@ -239,7 +286,7 @@
   $("resumebtn").addEventListener("click", function () {
     checkCode(function () { S = prior; S.convention = $("convention").value.trim() || S.convention; S.session = S.session || sessionId(); S.sent = S.sent || {}; save(); begin(); });
   });
-  function sessionId() { var a = "abcdefghjkmnpqrstuvwxyz23456789", r = ""; for (var i = 0; i < 8; i++) r += a[Math.floor(Math.random() * a.length)]; return r; }
+  function sessionId() { var a = "abcdefghjkmnpqrstuvwxyz23456789", r = "pilot"; for (var i = 0; i < 8; i++) r += a[Math.floor(Math.random() * a.length)]; return r; }
   $("restartbtn").addEventListener("click", function () { $("startbtn").disabled = !$("reader").value.trim(); $("startbtn").click(); });
 
   function show(id) { ["start", "test", "pausebox", "done"].forEach(function (s) { $(s).classList.toggle("hidden", s !== id); }); window.scrollTo(0, 0); }
@@ -253,7 +300,8 @@
   }
   function trial() {
     var i = S.answers.length, t = T.trials[i];
-    cur = { t: t.t, answer: null, confidence: null, shown_at: performance.now(), replays: 0, slow_used: slow, video_error: false };
+    cur = { t: t.t, answer: null, confidence: null, view: null, suit: null, reasons: [], shown_at: performance.now(), replays: 0, slow_used: slow, video_error: false };
+    hint();
     $("count").textContent = "Trial " + (i + 1) + " of " + T.n;
     $("progfill").style.width = (100 * i / T.n) + "%";
     $("da").textContent = "Depth " + t.da + " cm"; $("db").textContent = "Depth " + t.db + " cm";
@@ -262,13 +310,25 @@
     $("comment").value = ""; $("nextbtn").disabled = true; $("pause").textContent = "Pause";
     $("savednote").textContent = store ? "Answers are saved in this browser after every trial." : "";
   }
+  var GROUP = { answer: ["#choices .opt", "a"], confidence: ["#conf .opt", "c"], view: ["#view .opt", "v"], suit: ["#suit .opt", "s"] };
+  function needReason() { return cur && (cur.suit === "a" || cur.suit === "b" || cur.suit === "neither"); }
+  function ready() { return !!(cur && cur.answer && cur.confidence && cur.view && cur.suit && (!needReason() || cur.reasons.length)); }
+  function hint() { $("whyhint").textContent = needReason() ? "Select at least one." : "Select any that apply (optional here)."; }
   function pick(kind, val) {
     if (!cur) return;
     cur[kind] = val;
-    document.querySelectorAll(kind === "answer" ? "#choices .opt" : "#conf .opt").forEach(function (o) {
-      o.classList.toggle("sel", (kind === "answer" ? o.dataset.a : o.dataset.c) === val); });
-    $("nextbtn").disabled = !(cur.answer && cur.confidence);
+    document.querySelectorAll(GROUP[kind][0]).forEach(function (o) { o.classList.toggle("sel", o.dataset[GROUP[kind][1]] === val); });
+    hint(); $("nextbtn").disabled = !ready();
   }
+  function toggleReason(o) {
+    if (!cur) return;
+    var r = o.dataset.r, k = cur.reasons.indexOf(r);
+    if (k < 0) cur.reasons.push(r); else cur.reasons.splice(k, 1);
+    o.classList.toggle("sel", k < 0); $("nextbtn").disabled = !ready();
+  }
+  document.querySelectorAll("#view .opt").forEach(function (o) { o.addEventListener("click", function () { pick("view", o.dataset.v); }); });
+  document.querySelectorAll("#suit .opt").forEach(function (o) { o.addEventListener("click", function () { pick("suit", o.dataset.s); }); });
+  document.querySelectorAll("#reasons .opt").forEach(function (o) { o.addEventListener("click", function () { toggleReason(o); }); });
   document.querySelectorAll("#choices .opt").forEach(function (o) { o.addEventListener("click", function () { pick("answer", o.dataset.a); }); });
   document.querySelectorAll("#conf .opt").forEach(function (o) { o.addEventListener("click", function () { pick("confidence", o.dataset.c); }); });
   function replay() { [va, vb].forEach(function (v) { try { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }); if (cur) cur.replays++; $("pause").textContent = "Pause"; }
@@ -277,8 +337,9 @@
   $("pause").addEventListener("click", function () {
     if (va.paused) { va.play(); vb.play(); this.textContent = "Pause"; } else { va.pause(); vb.pause(); this.textContent = "Play"; } });
   function next() {
-    if (!cur || !cur.answer || !cur.confidence) return;
-    S.answers.push({ t: cur.t, answer: cur.answer, confidence: cur.confidence, comment: $("comment").value.trim(),
+    if (!ready()) return;
+    S.answers.push({ t: cur.t, answer: cur.answer, confidence: cur.confidence, view: cur.view, suitability: cur.suit,
+                     reasons: cur.reasons.slice().sort().join("|"), comment: $("comment").value.trim(),
                      rt_ms: Math.round(performance.now() - cur.shown_at), replays: cur.replays, slow_used: cur.slow_used,
                      video_error: cur.video_error, answered_at: new Date().toISOString() });
     save(); cur = null;
@@ -313,13 +374,13 @@
     var snap = S, k = stage + "_" + snap.answers.length;
     el.className = "note"; el.textContent = "Sending your answers to the study team...";
     if (stage === "final") $("retrysend").classList.add("hidden");
-    post({ code: getCode(), stage: stage, test_id: T.test_id, session: snap.session, csv: csv(), state: snap }).then(function (j) {
+    post({ code: getCode(), stage: stage, test_id: RELAY_TEST_ID, session: snap.session, csv: csv(), state: snap }).then(function (j) {
       if (!j || !j.ok) throw new Error(j && j.error || "no reply");
       snap.sent = snap.sent || {}; snap.sent[k] = j.path; save(); sentMsg(el, stage);
     }).catch(function (e) {
       el.className = "sendfail";
       el.textContent = (stage === "final" ? "Your answers could not be sent (" : "Your answers so far could not be sent (") + (e && e.message || "network") +
-        "). They are still saved in this browser. " + (stage === "final" ? "Please try again, or click Download answers and email the file to the study team." : "The page will try again at the next break and at the end.");
+        "). They are still saved in this browser. " + (stage === "final" ? "Please try again, or click Download answers and email the file to the study team." : "The page will try again at the end.");
       if (stage === "final") $("retrysend").classList.remove("hidden");
     });
   }
@@ -334,7 +395,7 @@
   });
 
   function stamp() { return new Date().toISOString().slice(0, 10); }
-  function fname(ext) { return "RotationReading_" + (S.reader || "reader").replace(/[^A-Za-z0-9]/g, "") + "_" + stamp() + "." + ext; }
+  function fname(ext) { return "RotationPilot_" + (S.reader || "reader").replace(/[^A-Za-z0-9]/g, "") + "_" + stamp() + "." + ext; }
   function download(text, name, type) {
     var b = new Blob([text], { type: type }), a = document.createElement("a");
     a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click();
@@ -342,8 +403,8 @@
   }
   function csv() {
     var q = function (v) { v = v === undefined || v === null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    var head = ["test_id", "reader", "experience", "convention", "trial", "answer", "confidence", "comment", "rt_ms", "replays", "slow_used", "video_error", "answered_at"];
-    var rows = S.answers.map(function (a) { return [S.test_id, S.reader, S.experience, S.convention, a.t, a.answer, a.confidence, a.comment, a.rt_ms, a.replays, a.slow_used, a.video_error, a.answered_at].map(q).join(","); });
+    var head = ["test_id", "build", "reader", "experience", "convention", "trial", "answer", "confidence", "view", "suitability", "reasons", "comment", "rt_ms", "replays", "slow_used", "video_error", "answered_at"];
+    var rows = S.answers.map(function (a) { return [S.test_id, S.build || BUILD, S.reader, S.experience, S.convention, a.t, a.answer, a.confidence, a.view, a.suitability, a.reasons, a.comment, a.rt_ms, a.replays, a.slow_used, a.video_error, a.answered_at].map(q).join(","); });
     return head.join(",") + "\n" + rows.join("\n") + "\n";
   }
   function dlcsv() { if (S) download(csv(), fname("csv"), "text/csv"); }
